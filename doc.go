@@ -9,10 +9,10 @@ users of the Linux GPIO uAPI (both v1 and v2).
 The simulators are provided by the Linux [gpio-sim] kernel module and require a
 recent kernel (5.19 or later) built with CONFIG_GPIO_SIM.
 
-Simulators ([Sim]) contain one or more [Chip]s, each with a collection of lines being
-simulated. Configuring a simulator involves adding [Bank]s, eash representing a
-chip, to [NewSim], which will construct the corresponding simulator using
-gpio-sim and take it live.
+Simulators ([Sim]) contain one or more gpiochips ([Chip]), each with a
+collection of lines being simulated. Configuring a simulator involves adding
+banks ([Bank]), each containing the configuration for a gpiochip, to [NewSim],
+which will construct the corresponding simulator using gpio-sim and take it live.
 
 Once live, the [Chip] exposes lines which may be manipulated to drive the
 GPIO uAPI from the kernel side.
