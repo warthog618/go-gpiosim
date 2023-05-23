@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2023 Kent Gibson <warthog618@gmail.com>
 //
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: Apache-2.0 OR MIT
 
 package gpiosim_test
 
@@ -166,6 +166,22 @@ func TestChipPull(t *testing.T) {
 	assert.Nil(t, err)
 	checkLineLevel(t, l, 0)
 	checkChipPull(t, c, offset, 0)
+}
+
+func TestChipCloseWithRequestedLines(t *testing.T) {
+	s, err := gpiosim.NewSim(
+		gpiosim.WithBank(gpiosim.NewBank("left", 8)),
+		gpiosim.WithBank(gpiosim.NewBank("right", 42)),
+	)
+	require.Nil(t, err)
+	defer s.Close()
+
+	offset := 3
+	c := &s.Chips[0]
+	l, err := gpiod.RequestLine(c.DevPath(), offset, gpiod.AsInput)
+	require.Nil(t, err)
+	checkLineLevel(t, l, 0)
+	s.Close()
 }
 
 func checkChipLevel(t *testing.T, c *gpiosim.Chip, offset, v int) {
