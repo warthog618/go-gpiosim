@@ -9,8 +9,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/warthog618/go-gpiocdev"
 	"github.com/warthog618/go-gpiosim"
-	"github.com/warthog618/gpiod"
 )
 
 func TestNewSim(t *testing.T) {
@@ -43,7 +43,7 @@ func TestNewSim(t *testing.T) {
 	p := s.Chips[0].DevPath()
 	assert.FileExists(t, p)
 	// check uAPI info
-	c, err := gpiod.NewChip(p)
+	c, err := gpiocdev.NewChip(p)
 	require.Nil(t, err)
 	assert.Equal(t, k.NumLines, c.Lines())
 	assert.Equal(t, k.Label, c.Label)
@@ -59,7 +59,7 @@ func TestNewSim(t *testing.T) {
 	p = s.Chips[1].DevPath()
 	assert.FileExists(t, p)
 	// check uAPI info
-	c, err = gpiod.NewChip(p)
+	c, err = gpiocdev.NewChip(p)
 	require.Nil(t, err)
 	assert.Equal(t, k.NumLines, c.Lines())
 	assert.Equal(t, k.Label, c.Label)
@@ -84,18 +84,18 @@ func TestNewSim(t *testing.T) {
 	assert.NoFileExists(t, p)
 }
 
-func checkLineInfo(t *testing.T, c *gpiod.Chip, k gpiosim.Bank) {
+func checkLineInfo(t *testing.T, c *gpiocdev.Chip, k gpiosim.Bank) {
 	for o := 0; o < k.NumLines; o++ {
-		xli := gpiod.LineInfo{
+		xli := gpiocdev.LineInfo{
 			Offset: o,
-			Config: gpiod.LineConfig{Direction: gpiod.LineDirectionInput},
+			Config: gpiocdev.LineConfig{Direction: gpiocdev.LineDirectionInput},
 		}
 		if name, ok := k.Names[o]; ok {
 			xli.Name = name
 		}
 		if hog, ok := k.Hogs[o]; ok {
 			if hog.Direction != gpiosim.HogDirectionInput {
-				xli.Config.Direction = gpiod.LineDirectionOutput
+				xli.Config.Direction = gpiocdev.LineDirectionOutput
 			}
 			xli.Used = true
 			xli.Consumer = hog.Consumer
@@ -106,7 +106,7 @@ func checkLineInfo(t *testing.T, c *gpiod.Chip, k gpiosim.Bank) {
 	}
 }
 
-func checkLineLevel(t *testing.T, l *gpiod.Line, xv int) {
+func checkLineLevel(t *testing.T, l *gpiocdev.Line, xv int) {
 	v, err := l.Value()
 	assert.Nil(t, err)
 	assert.Equal(t, xv, v)
@@ -128,7 +128,7 @@ func TestChipPull(t *testing.T) {
 
 	offset := 3
 	c := &s.Chips[0]
-	l, err := gpiod.RequestLine(c.DevPath(), offset, gpiod.AsInput)
+	l, err := gpiocdev.RequestLine(c.DevPath(), offset, gpiocdev.AsInput)
 	require.Nil(t, err)
 	defer l.Close()
 
@@ -178,7 +178,7 @@ func TestChipCloseWithRequestedLines(t *testing.T) {
 
 	offset := 3
 	c := &s.Chips[0]
-	l, err := gpiod.RequestLine(c.DevPath(), offset, gpiod.AsInput)
+	l, err := gpiocdev.RequestLine(c.DevPath(), offset, gpiocdev.AsInput)
 	require.Nil(t, err)
 	checkLineLevel(t, l, 0)
 	s.Close()
@@ -200,7 +200,7 @@ func TestChipLevel(t *testing.T) {
 
 	offset := 3
 	c := &s.Chips[0]
-	l, err := gpiod.RequestLine(c.DevPath(), offset, gpiod.AsOutput(0))
+	l, err := gpiocdev.RequestLine(c.DevPath(), offset, gpiocdev.AsOutput(0))
 	require.Nil(t, err)
 	defer l.Close()
 	checkChipLevel(t, c, offset, 0)
@@ -233,7 +233,7 @@ func TestNewSimpleton(t *testing.T) {
 	p := s.DevPath()
 	assert.FileExists(t, p)
 	// check uAPI info
-	c, err := gpiod.NewChip(p)
+	c, err := gpiocdev.NewChip(p)
 	require.Nil(t, err)
 	assert.Equal(t, k.NumLines, c.Lines())
 	assert.Equal(t, k.Label, c.Label)
@@ -254,7 +254,7 @@ func TestSimpletonPull(t *testing.T) {
 	defer s.Close()
 
 	offset := 3
-	l, err := gpiod.RequestLine(s.DevPath(), offset, gpiod.AsInput)
+	l, err := gpiocdev.RequestLine(s.DevPath(), offset, gpiocdev.AsInput)
 	require.Nil(t, err)
 	defer l.Close()
 
@@ -306,7 +306,7 @@ func TestSimpletonLevel(t *testing.T) {
 	defer s.Close()
 
 	offset := 3
-	l, err := gpiod.RequestLine(s.DevPath(), offset, gpiod.AsOutput(0))
+	l, err := gpiocdev.RequestLine(s.DevPath(), offset, gpiocdev.AsOutput(0))
 	require.Nil(t, err)
 	defer l.Close()
 	checkSimpletonLevel(t, s, offset, 0)
