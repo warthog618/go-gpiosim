@@ -7,6 +7,7 @@ package gpiosim
 import (
 	"bufio"
 	"fmt"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path"
@@ -184,7 +185,16 @@ func (b *builder) live() (*Sim, error) {
 		}
 		s.Chips[i].devName = devName
 		s.Chips[i].chipName = chipName
-		s.Chips[i].devPath = path.Join("/dev", chipName)
+		devPath := path.Join("/dev", chipName)
+		stat, err := os.Lstat(devPath)
+		if err != nil {
+			return nil, err
+		}
+		if stat.Mode()&fs.ModeSymlink != 0 {
+			err = errors.New("A symlink (" + devPath + ") is masking GPIO device " + chipName)
+			return nil, err
+		}
+		s.Chips[i].devPath = devPath
 		s.Chips[i].sysfsPath = path.Join("/sys/devices/platform", devName, chipName)
 	}
 	return &s, nil
